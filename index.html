@@ -5,30 +5,29 @@
 </head>
 <body>
 
-<h2>Sofia (Teste)</h2>
+  <h2>Sofia AI (Teste)</h2>
 
-<input id="input" placeholder="Digite algo..." />
-<button onclick="sendMessage()">Enviar</button>
+  <input id="input" placeholder="Digite algo..." />
+  <button onclick="sendMessage()">Enviar</button>
 
-<p id="response"></p>
+  <p id="response"></p>
 
-<script>
-async function sendMessage() {
-  const input = document.getElementById('input').value
+  <script>
+  async function sendMessage() {
+    const input = document.getElementById('input').value
 
-  const res = await fetch('https://sofia-ai-production-b963.up.railway.app/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ message: input })
-  })
+    const res = await fetch('https://sofia-ai-production-b963.up.railway.app/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: input })
+    })
 
-  const data = await res.json()
-
-  document.getElementById('response').innerText = data.reply
-}
-</script>
+    const data = await res.json()
+    document.getElementById('response').innerText = data.reply
+  }
+  </script>
 
 </body>
 </html>
