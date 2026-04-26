@@ -13,20 +13,20 @@
   <p id="response"></p>
 
   <script>
-  async function sendMessage() {
-    const input = document.getElementById('input').value
+    async function sendMessage() {
+      const input = document.getElementById('input').value
 
-    const res = await fetch('https://sofia-ai-production-b963.up.railway.app/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ message: input })
-    })
+      const res = await fetch('https://sofia-ai-production-b963.up.railway.app/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: input })
+      })
 
-    const data = await res.json()
-    document.getElementById('response').innerText = data.reply
-  }
+      const data = await res.json()
+      document.getElementById('response').innerText = data.reply || data.error || "Sem resposta"
+    }
   </script>
 
 </body>
