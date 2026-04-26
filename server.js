@@ -1,67 +1,25 @@
-const express = require('express')
-const cors = require('cors')
-
-const app = express()
-app.use(cors())
-app.use(express.json())
-
-// memória simples (simula sessão)
-let etapa = {}
-
-app.post('/chat', (req, res) => {
+app.post("/chat", (req, res) => {
   const { message } = req.body
-  const user = "user1" // depois podemos melhorar isso
 
-  if (!etapa[user]) etapa[user] = "inicio"
+  let reply = ""
 
-  switch (etapa[user]) {
+  const msg = message.toLowerCase()
 
-    case "inicio":
-      etapa[user] = "intencao"
-      return res.json({
-        reply: "Olá! 👋 Sou a Sofia, assistente da clínica. Você deseja marcar uma consulta ou tirar dúvidas?"
-      })
-
-    case "intencao":
-      if (message.toLowerCase().includes("consulta") || message.toLowerCase().includes("marcar")) {
-        etapa[user] = "especialidade"
-        return res.json({
-          reply: "Perfeito! 😊 Qual especialidade você precisa? (clínico geral, odontologia, psicologia)"
-        })
-      } else {
-        return res.json({
-          reply: "Entendi 😊 Pode me explicar melhor como posso te ajudar?"
-        })
-      }
-
-    case "especialidade":
-      etapa[user] = "data"
-      return res.json({
-        reply: "Ótimo! 🗓️ Qual dia e horário você prefere?"
-      })
-
-    case "data":
-      etapa[user] = "dados"
-      return res.json({
-        reply: "Para finalizar, me informe seu nome completo e telefone 📞"
-      })
-
-    case "dados":
-      etapa[user] = "fim"
-      return res.json({
-        reply: "Perfeito! ✅ Seu pedido foi registrado. Em breve entraremos em contato para confirmar."
-      })
-
-    default:
-      return res.json({
-        reply: "Posso te ajudar com mais alguma coisa? 😊"
-      })
+  if (msg.includes("oi") || msg.includes("olá")) {
+    reply = "Olá! Sou a Sofia, assistente virtual da clínica. Como posso te ajudar hoje?"
+  } 
+  else if (msg.includes("consulta")) {
+    reply = "Claro! Você gostaria de agendar uma consulta? Me diga seu nome completo."
+  } 
+  else if (msg.includes("preço") || msg.includes("valor")) {
+    reply = "Os valores variam conforme o atendimento. Você procura consulta geral ou especialista?"
+  } 
+  else if (msg.includes("nome")) {
+    reply = "Perfeito! Agora me informe seu telefone para confirmar o agendamento."
+  } 
+  else {
+    reply = "Entendi. Pode me explicar um pouco melhor para eu te ajudar?"
   }
-})
 
-app.get('/', (req, res) => {
-  res.send("Sofia AI rodando 🚀")
+  res.json({ reply })
 })
-
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT))
