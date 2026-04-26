@@ -36,8 +36,8 @@ Se não souber algo, peça para o paciente ligar na clínica.`,
     res.json({ reply: response.content[0].text })
 
   } catch (error) {
-    console.error("Erro na API:", error)
-    res.status(500).json({ error: "Erro ao processar resposta." })
+    console.error("Erro na API:", error.message)
+    res.status(500).json({ error: error.message })
   }
 })
 
