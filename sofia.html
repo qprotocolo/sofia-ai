@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sofia AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #080b12;
+    --bg2:      #0d1120;
+    --surface:  #161d2e;
+    --surface2: #1e2840;
+    --border:   rgba(255,255,255,0.07);
+    --border2:  rgba(255,255,255,0.12);
+    --teal:     #00d4b4;
+    --teal-dim: rgba(0,212,180,0.12);
+    --text:     #e8edf5;
+    --text-dim: #8892a4;
+    --text-muted: #4a5568;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 10%, rgba(0,212,180,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(99,102,241,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 460px;
+    height: min(780px, calc(100dvh - 32px));
+    background: var(--bg2);
+    border-radius: 28px;
+    border: 1px solid var(--border2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 80px rgba(0,212,180,0.04);
+    animation: shellIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  @keyframes shellIn {
+    from { opacity:0; transform:translateY(24px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  /* HEADER */
+  .header {
+    height: 76px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,212,180,0.04) 0%, transparent 100%);
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 20px; right: 20px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,180,0.3), transparent);
+  }
+
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+
+  .avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,212,180,0.3);
+    overflow: hidden;
+    position: relative;
+    background: #0d1829;
+  }
+
+  .avatar svg { width: 46px; height: 46px; display: block; }
+
+  .ring {
+    position: absolute; inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--teal), transparent 60%, var(--teal));
+    animation: spin 4s linear infinite;
+    opacity: 0.35;
+    z-index: -1;
+  }
+
+  .ring::after {
+    content: '';
+    position: absolute; inset: 3px;
+    border-radius: 50%;
+    background: var(--bg2);
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .pip {
+    position: absolute; bottom: 1px; right: 1px;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid var(--bg2);
+    animation: pipPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pipPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+    50%      { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+  }
+
+  .header-info { flex: 1; }
+
+  .header-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 7px;
+  }
+
+  .verified {
+    width: 15px; height: 15px;
+    background: var(--teal);
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.6rem;
+    color: #000;
+    font-weight: 900;
+  }
+
+  .header-sub {
+    font-size: 0.73rem;
+    color: var(--text-dim);
+    margin-top: 3px;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .live {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #22c55e;
+    animation: pipPulse 1.8s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  /* MESSAGES */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scroll-behavior: smooth;
+  }
+
+  .messages::-webkit-scrollbar { width: 3px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+
+  .date-sep {
+    text-align: center;
+    margin: 4px 0 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .date-sep span {
+    font-size: 0.67rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .date-sep::before, .date-sep::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    animation: msgIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  @keyframes msgIn {
+    from { opacity:0; transform:translateY(8px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  .msg-row.sofia { justify-content: flex-start; }
+  .msg-row.user  { justify-content: flex-end; margin-top: 4px; }
+
+  .mini-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #0d1829;
+    border: 1px solid rgba(0,212,180,0.2);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .mini-avatar svg { width: 28px; height: 28px; display: block; }
+  .mini-avatar.hide { opacity: 0; pointer-events: none; }
+
+  .bubble-wrap { display: flex; flex-direction: column; max-width: 76%; }
+  .msg-row.user .bubble-wrap { align-items: flex-end; }
+
+  .bubble {
+    padding: 11px 15px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  .msg-row.sofia .bubble {
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 16px 16px 16px 4px;
+    border: 1px solid var(--border);
+  }
+
+  .msg-row.user .bubble {
+    background: linear-gradient(135deg, #0a6e62, #00b89e);
+    color: #fff;
+    border-radius: 16px 16px 4px 16px;
+    border: 1px solid rgba(0,212,180,0.2);
+    box-shadow: 0 4px 20px rgba(0,212,180,0.15);
+  }
+
+  .btime {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+
+  .msg-row.user .btime { text-align: right; }
+
+  /* TYPING */
+  .typing-row {
+    display: flex; align-items: flex-end; gap: 8px;
+    animation: msgIn 0.3s ease both;
+  }
+
+  .typing-bub {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 13px 16px;
+    border-radius: 16px 16px 16px 4px;
+    display: flex; gap: 5px; align-items: center;
+  }
+
+  .typing-bub span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--teal);
+    animation: tb 1.3s ease-in-out infinite;
+    opacity: 0.5;
+  }
+
+  .typing-bub span:nth-child(2) { animation-delay: 0.18s; }
+  .typing-bub span:nth-child(3) { animation-delay: 0.36s; }
+
+  @keyframes tb {
+    0%,60%,100% { transform:translateY(0); opacity:0.4; }
+    30%          { transform:translateY(-6px); opacity:1; }
+  }
+
+  /* QUICK REPLIES */
+  .quick-replies {
+    padding: 0 16px 12px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  .qbtn {
+    background: transparent;
+    border: 1px solid rgba(0,212,180,0.25);
+    color: var(--teal);
+    padding: 7px 14px;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .qbtn:hover, .qbtn:active { background: var(--teal-dim); border-color: var(--teal); }
+
+  /* FOOTER */
+  .footer {
+    padding: 12px 14px 18px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .input-shell {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: var(--surface);
+    border: 1.5px solid var(--border2);
+    border-radius: 16px;
+    padding: 10px 10px 10px 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-shell:focus-within {
+    border-color: rgba(0,212,180,0.4);
+    box-shadow: 0 0 0 3px rgba(0,212,180,0.06);
+  }
+
+  #msgInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.45;
+    resize: none;
+    min-height: 22px;
+    max-height: 90px;
+    overflow-y: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #msgInput::placeholder { color: var(--text-muted); }
+
+  #sendBtn {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0a7c6e, #00d4b4);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.18s;
+    box-shadow: 0 4px 14px rgba(0,212,180,0.25);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  #sendBtn:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(0,212,180,0.4); }
+  #sendBtn:active { transform: scale(0.93); }
+  #sendBtn:disabled { background: var(--surface2); box-shadow: none; cursor: not-allowed; transform: none; }
+
+  #sendBtn svg { width: 15px; height: 15px; fill: #fff; pointer-events: none; }
+
+  .footer-meta {
+    margin-top: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  .fmeta { font-size: 0.64rem; color: var(--text-muted); }
+  .fdot  { width: 3px; height: 3px; border-radius: 50%; background: var(--text-muted); }
+  .fbrand { font-size: 0.64rem; color: var(--teal); font-weight: 600; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="avatar-wrap">
+      <div class="ring"></div>
+      <div class="avatar">
+        <svg viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="23" cy="23" r="23" fill="url(#hbg)"/>
+          <ellipse cx="23" cy="15" rx="10" ry="11" fill="#160a28"/>
+          <rect x="19" y="31" width="8" height="9" rx="4" fill="#e8b89a"/>
+          <ellipse cx="23" cy="25" rx="10.5" ry="11.5" fill="#f0c8a8"/>
+          <path d="M12 19 Q13 9 23 9 Q33 9 34 19 Q34 13 23 11 Q12 13 12 19Z" fill="#160a28"/>
+          <path d="M13 23 Q11 15 23 12 Q35 15 33 23" fill="#160a28"/>
+          <ellipse cx="13" cy="25" rx="2.2" ry="2.8" fill="#e8b89a"/>
+          <ellipse cx="33" cy="25" rx="2.2" ry="2.8" fill="#e8b89a"/>
+          <ellipse cx="18.5" cy="23" rx="2.8" ry="3" fill="white"/>
+          <ellipse cx="18.5" cy="23.3" rx="1.7" ry="1.9" fill="#2d1b6b"/>
+          <ellipse cx="18.5" cy="23.3" rx="0.8" ry="0.9" fill="#080c18"/>
+          <ellipse cx="19.2" cy="22.6" rx="0.5" ry="0.5" fill="white"/>
+          <path d="M16 20 Q18.5 19 21 20" stroke="#3d2020" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <ellipse cx="27.5" cy="23" rx="2.8" ry="3" fill="white"/>
+          <ellipse cx="27.5" cy="23.3" rx="1.7" ry="1.9" fill="#2d1b6b"/>
+          <ellipse cx="27.5" cy="23.3" rx="0.8" ry="0.9" fill="#080c18"/>
+          <ellipse cx="28.2" cy="22.6" rx="0.5" ry="0.5" fill="white"/>
+          <path d="M25 20 Q27.5 19 30 20" stroke="#3d2020" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path d="M21.5 26.5 Q23 27.8 24.5 26.5" stroke="#c08080" stroke-width="1" stroke-linecap="round" fill="none"/>
+          <path d="M19.5 29.5 Q23 32 26.5 29.5" stroke="#c06060" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          <path d="M13 18 Q14 22 13 26" stroke="#160a28" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path d="M33 18 Q32 22 33 26" stroke="#160a28" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <defs>
+            <radialGradient id="hbg" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#1a2540"/>
+              <stop offset="100%" stop-color="#0a0f1e"/>
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="pip"></div>
+    </div>
+
+    <div class="header-info">
+      <div class="header-name">
+        Sofia <span class="verified">✓</span>
+      </div>
+      <div class="header-sub">
+        <span class="live"></span>
+        Online agora · Responde em segundos
+      </div>
+    </div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="messages">
+    <div class="date-sep"><span>Hoje</span></div>
+    <div class="msg-row sofia">
+      <div class="mini-avatar">
+        <svg viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="14" fill="#1a2540"/>
+          <ellipse cx="14" cy="15" rx="7" ry="7.5" fill="#f0c8a8"/>
+          <path d="M7 12 Q14 7 21 12 Q21 9 14 8 Q7 9 7 12Z" fill="#160a28"/>
+          <ellipse cx="10.5" cy="14" rx="1.8" ry="2" fill="white"/>
+          <ellipse cx="10.5" cy="14.2" rx="1" ry="1.1" fill="#2d1b6b"/>
+          <ellipse cx="17.5" cy="14" rx="1.8" ry="2" fill="white"/>
+          <ellipse cx="17.5" cy="14.2" rx="1" ry="1.1" fill="#2d1b6b"/>
+          <path d="M11.5 18.5 Q14 20.5 16.5 18.5" stroke="#c06060" stroke-width="1" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="bubble-wrap">
+        <div class="bubble">Olá! Seja bem-vindo 👋<br><br>Sou a <strong>Sofia</strong>, assistente virtual da clínica. Estou aqui para ajudar com agendamentos, dúvidas ou informações.<br><br>Como posso te ajudar hoje?</div>
+        <div class="btime" id="welcomeTime"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK REPLIES -->
+  <div class="quick-replies" id="quickReplies">
+    <button class="qbtn" id="q1">📅 Agendar consulta</button>
+    <button class="qbtn" id="q2">🔍 Especialidades</button>
+    <button class="qbtn" id="q3">🕐 Horários</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="input-shell">
+      <textarea id="msgInput" placeholder="Digite sua mensagem..." rows="1"></textarea>
+      <button id="sendBtn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="footer-meta">
+      <span class="fmeta">Assistente virtual com IA</span>
+      <div class="fdot"></div>
+      <span class="fbrand">SOFIA AI · TEKVEX</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var BACKEND = 'https://sofia-ai-production-b963.up.railway.app/chat';
+  var messagesEl = document.getElementById('messages');
+  var inputEl    = document.getElementById('msgInput');
+  var sendBtnEl  = document.getElementById('sendBtn');
+  var quickEl    = document.getElementById('quickReplies');
+  var quickHidden = false;
+
+  // Set welcome time
+  document.getElementById('welcomeTime').textContent = getTime();
+
+  // Quick reply buttons
+  document.getElementById('q1').addEventListener('click', function() { doSend('Quero agendar uma consulta'); });
+  document.getElementById('q2').addEventListener('click', function() { doSend('Quais especialidades vocês têm?'); });
+  document.getElementById('q3').addEventListener('click', function() { doSend('Quais são os horários de atendimento?'); });
+
+  // Send button
+  sendBtnEl.addEventListener('click', function() { doSend(inputEl.value); });
+
+  // Enter key
+  inputEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      doSend(inputEl.value);
+    }
+  });
+
+  // Auto-resize textarea
+  inputEl.addEventListener('input', function() {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 90) + 'px';
+  });
+
+  function getTime() {
+    return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function miniAvatarHTML() {
+    return '<svg viewBox="0 0 28 28" fill="none">'
+      + '<circle cx="14" cy="14" r="14" fill="#1a2540"/>'
+      + '<ellipse cx="14" cy="15" rx="7" ry="7.5" fill="#f0c8a8"/>'
+      + '<path d="M7 12 Q14 7 21 12 Q21 9 14 8 Q7 9 7 12Z" fill="#160a28"/>'
+      + '<ellipse cx="10.5" cy="14" rx="1.8" ry="2" fill="white"/>'
+      + '<ellipse cx="10.5" cy="14.2" rx="1" ry="1.1" fill="#2d1b6b"/>'
+      + '<ellipse cx="17.5" cy="14" rx="1.8" ry="2" fill="white"/>'
+      + '<ellipse cx="17.5" cy="14.2" rx="1" ry="1.1" fill="#2d1b6b"/>'
+      + '<path d="M11.5 18.5 Q14 20.5 16.5 18.5" stroke="#c06060" stroke-width="1" stroke-linecap="round" fill="none"/>'
+      + '</svg>';
+  }
+
+  function hideQuick() {
+    if (!quickHidden) {
+      quickEl.style.display = 'none';
+      quickHidden = true;
+    }
+  }
+
+  function scrollDown() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function addSofia(text) {
+    var row = document.createElement('div');
+    row.className = 'msg-row sofia';
+    row.innerHTML = '<div class="mini-avatar">' + miniAvatarHTML() + '</div>'
+      + '<div class="bubble-wrap">'
+      + '<div class="bubble">' + text.replace(/\n/g, '<br>') + '</div>'
+      + '<div class="btime">' + getTime() + '</div>'
+      + '</div>';
+    messagesEl.appendChild(row);
+    scrollDown();
+  }
+
+  function addUser(text) {
+    var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var row = document.createElement('div');
+    row.className = 'msg-row user';
+    row.innerHTML = '<div class="bubble-wrap">'
+      + '<div class="bubble">' + safe + '</div>'
+      + '<div class="btime">' + getTime() + '</div>'
+      + '</div>';
+    messagesEl.appendChild(row);
+    scrollDown();
+  }
+
+  function showTyping() {
+    var row = document.createElement('div');
+    row.className = 'typing-row';
+    row.id = 'typingRow';
+    row.innerHTML = '<div class="mini-avatar">' + miniAvatarHTML() + '</div>'
+      + '<div class="typing-bub"><span></span><span></span><span></span></div>';
+    messagesEl.appendChild(row);
+    scrollDown();
+  }
+
+  function hideTyping() {
+    var t = document.getElementById('typingRow');
+    if (t) t.remove();
+  }
+
+  function doSend(text) {
+    text = text.trim();
+    if (!text) return;
+
+    hideQuick();
+    addUser(text);
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    sendBtnEl.disabled = true;
+    showTyping();
+
+    fetch(BACKEND, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      hideTyping();
+      addSofia(data.reply || data.error || 'Não entendi, pode repetir?');
+      sendBtnEl.disabled = false;
+      inputEl.focus();
+    })
+    .catch(function() {
+      hideTyping();
+      addSofia('Tive um problema de conexão. Tente novamente.');
+      sendBtnEl.disabled = false;
+    });
+  }
+</script>
+
+</body>
+  </html>
+  
